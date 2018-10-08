@@ -1,0 +1,42 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta http-equiv="X-UA-Compatible" content="ie=edge">
+  <title>Document</title>
+</head>
+<body>
+
+  <h1 class="hola" id="hola"></h1>
+
+  <script src="https://www.gstatic.com/firebasejs/5.5.1/firebase.js"></script>
+  <script>
+    // Initialize Firebase
+    var config = {
+      apiKey: "AIzaSyA5o4izORkl4snheJRjF7M2nCo5w3LBRJk",
+      authDomain: "edfirebase-f84a5.firebaseapp.com",
+      databaseURL: "https://edfirebase-f84a5.firebaseio.com",
+      projectId: "edfirebase-f84a5",
+      storageBucket: "edfirebase-f84a5.appspot.com",
+      messagingSenderId: "1044720769430"
+    };
+    firebase.initializeApp(config);
+    
+    const hola = document.getElementById('hola'),
+      db = firebase.database(),
+      refText = db.ref().child('text')
+
+      console.log(db, refText)
+
+      refText.on('value', data => {
+        hola.innerText = data.val()
+      })
+
+      db.ref().child('data').push({
+        message: 'Insertando datos con el metodo push'
+      })
+
+  </script>
+</body>
+</html>

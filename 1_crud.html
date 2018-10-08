@@ -1,0 +1,132 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta http-equiv="X-UA-Compatible" content="ie=edge">
+  <title>CRUD con firebase</title>
+</head>
+
+<body>
+  <h1>CRUD con Firebase</h1>
+  <h2>Lista de Contactos</h2>
+  <h3>Create / Uodate</h3>
+
+  <form action="">
+    <input type="text" id="name" placeholder="Tu nombre" required>
+    <br>
+    <input type="email" id="email" placeholder="Tu email" required>
+    <br>
+    <!-- Creación y actualización -->
+    <input type="hidden" id="id">
+    <input type="submit" value="Salvar">
+  </form>
+
+  <h3>Read/ Delete</h3>
+
+  <ul id="contacts"></ul>
+
+
+
+  <script src="https://www.gstatic.com/firebasejs/5.5.1/firebase.js"></script>
+  <script>
+    ;
+    ((d, c, f) => {
+      const config = {
+        apiKey: "AIzaSyA5o4izORkl4snheJRjF7M2nCo5w3LBRJk",
+        authDomain: "edfirebase-f84a5.firebaseapp.com",
+        databaseURL: "https://edfirebase-f84a5.firebaseio.com",
+        projectId: "edfirebase-f84a5",
+        storageBucket: "edfirebase-f84a5.appspot.com",
+        messagingSenderId: "1044720769430"
+      }
+      f.initializeApp(config)
+
+
+      // Definir elementos de la base de datos
+      const db = f.database(),
+        contactsRef = db.ref().child('contacts'),
+        contactsForm = d.forms[0], // Solo tengo un formulario
+        contactName = d.getElementById('name'),
+        contactEmail = d.getElementById('email'),
+        contactId = d.getElementById('id'),
+        contacts = d.getElementById('contacts')
+
+      function contactTemplate ({name, email}) {
+        return `
+          <span class="name">${name}</span>
+          -
+          <span class="email">${email}</span>
+          <button class="edit">Editar</button>
+          <button class="delete">Eliminar</button>
+        `
+      }
+
+      // INSERTAR DATOS //
+
+      //CREATE
+      contactsForm.addEventListener('submit', e => {
+        e.preventDefault()
+        // alert('Procesando form')
+
+        // Condicional para id
+        let id = contactId.value || contactsRef.push().key, // Creo el push y a demas el key me da la llave
+          contactData = {
+            name: contactName.value,
+            email: contactEmail.value
+          },
+          updateData = {}
+
+        // notación corchetes de objeti
+        updateData[`/${id}`] = contactData // diagonal, porque así está en firebase
+
+        // Actualizar la referencia
+        contactsRef.update(updateData)
+
+        contactId.value = ''
+        contactsForm.reset()
+      })
+
+      // READ
+      contactsRef.on('child_added', data => { // Por cada registro en mi colleción,voy a hacer lo siguiente
+        let li = d.createElement('li')
+
+        li.id = data.key // Le pasamos el key de firebase
+        li.innerHTML = contactTemplate(data.val())
+        contacts.appendChild(li)
+      })
+
+      contactsRef.on('child_changed', data => {
+        let affectedNode = d.getElementById(data.key)
+        affectedNode.innerHTML = contactTemplate(data.val())
+      })
+      contactsRef.on('child_removed', data => {
+        let affectedNode = d.getElementById(data.key)
+        contacts.removeChild(affectedNode)
+      })
+
+      d.addEventListener('click', e => {
+
+        let affectedNode = e.target.parentElement
+
+        // UDPDATE
+        if (e.target.matches('button.edit')){// Objeto que originó el evento
+          // c('Click', affectedNode)
+          contactName.value = affectedNode.querySelector('.name').innerText
+          contactEmail.value = affectedNode.querySelector('.email').innerText
+          contactId.value = affectedNode.id
+        } 
+        // DELETE
+        if (e.target.matches('button.delete')){// Objeto que originó el evento
+          let id = affectedNode.id
+          db.ref(`contacts/${id}`).remove()
+        } 
+
+      })
+
+    })(document, console.log, firebase);
+  </script>
+</body>
+
+</html>
